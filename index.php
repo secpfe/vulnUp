@@ -45,41 +45,42 @@
     </nav>
 
          <div class="content">
-       <?php
-if (isset($_GET['page'])) {
-    $page = $_GET['page'];
+     <?php
+        if (isset($_GET['page'])) {
+            $page = $_GET['page'];
 
-    // Apply security checks
-    if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
-        die("Access denied.");
-    }
-    if (strpos($page, chr(0)) !== false) {
-        die("Null byte detected.");
-    }
+            // Apply directory traversal checks BEFORE decoding
+            if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
+                die("Access denied.");
+            }
 
-    // Double URL decode
-    $page = urldecode(urldecode($page));
+            // Check for null byte injection
+            if (strpos($page, chr(0)) !== false) {
+                die("Null byte detected.");
+            }
 
-    // Remove any remaining directory components
-    $page = basename($page);
+            // **Only allow alphanumeric characters and underscores in page names**
+            if (!preg_match('/^[a-zA-Z0-9_]+$/', $page)) {
+                die("Invalid page name.");
+            }
 
-    // Attempt to include from 'pages' directory
-    $filepath = "pages/" . $page . ".php";
-    if (file_exists($filepath)) {
-        include($filepath);
-    } else {
-        // Attempt to include directly from root directory
-        if (file_exists($page)) {
-            include($page);
+            // Double URL decode the 'page' parameter AFTER the security checks
+            $page = urldecode(urldecode($page));
+
+            // Construct the file path in the "pages" directory
+            $filepath = "pages/" . $page . ".php";
+
+            // Include the file if it exists in the "pages" directory
+            if (file_exists($filepath)) {
+                include($filepath);
+            } else {
+                echo "<h1>Page not found!</h1>";
+                echo "<p>The page you're looking for does not exist.</p>";
+            }
         } else {
-            echo "<h1>Page not found!</h1>";
-            echo "<p>The page you're looking for does not exist.</p>";
+            include("pages/home.php");  // Default page
         }
-    }
-} else {
-    include("pages/home.php");  // Default page
-}
-?>
+        ?>
 
     </div>
 
