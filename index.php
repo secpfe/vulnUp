@@ -44,67 +44,42 @@
         <a href="index.php?page=contact">Contact Us</a>
     </nav>
 
-    <div class="content">
-      <?php
-// Check if the page parameter is set
-if (isset($_GET['page'])) {
-    // Get the raw 'page' parameter from the query string
-    $query = $_SERVER['QUERY_STRING'];
-    preg_match('/(?:^|&)' . preg_quote('page', '/') . '=([^&]*)/', $query, $matches);
-    $page_raw = isset($matches[1]) ? $matches[1] : '';
+        <div class="content">
+        <?php
+        if (isset($_GET['page'])) {
+            $page = $_GET['page'];
 
-    // Single URL decode for security checks
-    $page_single_decode = urldecode($page_raw);
+            // **Double URL decode the 'page' parameter first**
+            $page = urldecode(urldecode($page));
 
-    // Check for directory traversal in singly decoded input
-    if (strpos($page_single_decode, '../') !== false || strpos($page_single_decode, '..\\') !== false) {
-        die("Access denied.");
-    }
+            // **Apply directory traversal checks after decoding**
+            if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
+                die("Access denied.");
+            }
 
-    // Check for null byte injection
-    if (strpos($page_single_decode, chr(0)) !== false) {
-        die("Null byte detected.");
-    }
+            // Check for null byte injection
+            if (strpos($page, chr(0)) !== false) {
+                die("Null byte detected.");
+            }
 
-    // Double URL decode for inclusion
-    $page = urldecode($page_single_decode);
+            // Allow files in the "pages" directory (with .php extension)
+            $filepath = "pages/" . $page . ".php";
 
-    // Build the file path to include from 'pages' directory
-    $filepath = realpath(__DIR__ . '/pages/' . $page . '.php');
-
-    // If the page exists in "pages" directory, include it
-    if ($filepath && strpos($filepath, realpath(__DIR__ . '/pages/')) === 0 && file_exists($filepath)) {
-        include($filepath);
-    } else {
-        // Attempt to include the file directly (potential LFI)
-        $include_path = realpath(__DIR__ . '/' . $page);
-
-        // Ensure the file is within the allowed directory (one level higher than 'pages')
-        if ($include_path && strpos($include_path, __DIR__) === 0 && file_exists($include_path)) {
-            // Handle non-PHP files
-            $ext = pathinfo($include_path, PATHINFO_EXTENSION);
-            if ($ext === 'php') {
-                include($include_path);
+            if (file_exists($filepath)) {
+                include($filepath);
             } else {
-                // Output the contents safely
-                echo "<pre>";
-                echo htmlspecialchars(file_get_contents($include_path));
-                echo "</pre>";
+                // Allow inclusion of files outside "pages" directory (LFI)
+                if (file_exists($page)) {
+                    include($page); // Include files like config.ini
+                } else {
+                    echo "<h1>Page not found!</h1>";
+                    echo "<p>The page you're looking for does not exist.</p>";
+                }
             }
         } else {
-            echo "<h1>Page not found!</h1>";
-            echo "<p>The page you're looking for does not exist.</p>";
+            include("pages/home.php");  // Default page
         }
-    }
-} else {
-    include("pages/home.php");  // Default page
-}
-?>
-
-
-
-
-
+        ?>
     </div>
 
     <footer>
