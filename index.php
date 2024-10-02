@@ -46,9 +46,22 @@
 
     <div class="content">
         <?php
-        // Vulnerable to Local File Inclusion
+        // Check if the page parameter is set
         if (isset($_GET['page'])) {
-            $page = urldecode($_GET['page']);  // Decode the parameter
+            $page = $_GET['page'];
+
+            // Check for directory traversal (../ or ..\\)
+            if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
+                die("Access denied.");
+            }
+
+            // Check for null byte injection
+            if (strpos($page, chr(0)) !== false) {
+                die("Null byte detected.");
+            }
+
+            // Double URL decode to simulate bypass
+            $page = urldecode(urldecode($page));
 
             // Allow files in the "pages" directory (with .php extension)
             $filepath = "pages/" . $page . ".php";
@@ -58,18 +71,11 @@
                 include($filepath);
             } else {
                 // Allow directory traversal if not found in pages/ directory (LFI)
-                if (strpos($page, '../') === false && strpos($page, '..\\') === false) {
-                    // Allow access to other files like config.ini
-                    $filepath = $page;
-                    
-                    if (file_exists($filepath)) {
-                        include($filepath);
-                    } else {
-                        echo "<h1>Page not found!</h1>";
-                        echo "<p>The page you're looking for does not exist.</p>";
-                    }
+                if (file_exists($page)) {
+                    include($page); // Include non-PHP files like config.ini
                 } else {
-                    echo "<h1>Invalid page request.</h1>";
+                    echo "<h1>Page not found!</h1>";
+                    echo "<p>The page you're looking for does not exist.</p>";
                 }
             }
         } else {
@@ -77,7 +83,7 @@
         }
         ?>
     </div>
-    
+
     <footer>
         <p>&copy; 2024 Lastmile Security Professionals</p>
     </footer>
