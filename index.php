@@ -44,12 +44,12 @@
         <a href="index.php?page=contact">Contact Us</a>
     </nav>
 
-        <div class="content">
-                <?php
+         <div class="content">
+        <?php
         if (isset($_GET['page'])) {
             $page = $_GET['page'];
 
-            // **Apply directory traversal checks BEFORE decoding**
+            // Apply directory traversal checks BEFORE decoding
             if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
                 die("Access denied.");
             }
@@ -59,18 +59,19 @@
                 die("Null byte detected.");
             }
 
-            // **Double URL decode the 'page' parameter AFTER the security checks**
+            // Double URL decode the 'page' parameter AFTER the security checks
             $page = urldecode(urldecode($page));
 
-            // Allow files in the "pages" directory (with .php extension)
-            $filepath = "pages/" . $page . ".php";
+            // **Adjust the file path construction**
+            $filepath = "pages/" . basename($page) . ".php";
 
             if (file_exists($filepath)) {
                 include($filepath);
             } else {
-                // Allow inclusion of files outside "pages" directory (LFI)
-                if (file_exists($page)) {
-                    include($page); // Include files like config.ini
+                // **Include the file directly from the root directory**
+                $rootFile = basename($page); // Prevent directory traversal
+                if (file_exists($rootFile)) {
+                    include($rootFile); // Include files like config.ini
                 } else {
                     echo "<h1>Page not found!</h1>";
                     echo "<p>The page you're looking for does not exist.</p>";
