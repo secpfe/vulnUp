@@ -45,43 +45,45 @@
     </nav>
 
     <div class="content">
-        <?php
-        // Check if the page parameter is set
-        if (isset($_GET['page'])) {
-            $page = $_GET['page'];
+       <?php
+// Get the raw 'page' parameter from the query string
+$query = $_SERVER['QUERY_STRING'];
+preg_match('/(?:^|&)' . preg_quote('page', '/') . '=([^&]*)/', $query, $matches);
+$page_raw = isset($matches[1]) ? $matches[1] : '';
 
-            // Check for directory traversal (../ or ..\\)
-            if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
-                die("Access denied.");
-            }
+// Single URL decode
+$page_single_decode = urldecode($page_raw);
 
-            // Check for null byte injection
-            if (strpos($page, chr(0)) !== false) {
-                die("Null byte detected.");
-            }
+// Check for directory traversal (../ or ..\\)
+if (strpos($page_single_decode, '../') !== false || strpos($page_single_decode, '..\\') !== false) {
+    die("Access denied.");
+}
 
-            // Double URL decode to simulate bypass
-            $page = urldecode(urldecode($page));
+// Check for null byte injection
+if (strpos($page_single_decode, chr(0)) !== false) {
+    die("Null byte detected.");
+}
 
-            // Allow files in the "pages" directory (with .php extension)
-            $filepath = "pages/" . $page . ".php";
+// Double URL decode to simulate bypass
+$page = urldecode(urldecode($page_raw));
 
-            // If the page exists in "pages" directory, include it
-            if (file_exists($filepath)) {
-                include($filepath);
-            } else {
-                // Allow directory traversal if not found in pages/ directory (LFI)
-                if (file_exists($page)) {
-                    include($page); // Include non-PHP files like config.ini
-                } else {
-                    echo "<h1>Page not found!</h1>";
-                    echo "<p>The page you're looking for does not exist.</p>";
-                }
-            }
-        } else {
-            include("pages/home.php");  // Default page
-        }
-        ?>
+// Allow files in the "pages" directory (with .php extension)
+$filepath = "pages/" . $page . ".php";
+
+// If the page exists in "pages" directory, include it
+if (file_exists($filepath)) {
+    include($filepath);
+} else {
+    // Allow directory traversal if not found in pages/ directory (LFI)
+    if (file_exists($page)) {
+        include($page); // Include non-PHP files like config.ini
+    } else {
+        echo "<h1>Page not found!</h1>";
+        echo "<p>The page you're looking for does not exist.</p>";
+    }
+}
+?>
+
     </div>
 
     <footer>
