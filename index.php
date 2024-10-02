@@ -46,6 +46,11 @@
 
     <div class="content">
        <?php
+// Enable error reporting for debugging
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
 // Get the raw 'page' parameter from the query string
 $query = $_SERVER['QUERY_STRING'];
 preg_match('/(?:^|&)' . preg_quote('page', '/') . '=([^&]*)/', $query, $matches);
@@ -67,8 +72,15 @@ if (strpos($page_single_decode, chr(0)) !== false) {
 // Double URL decode to simulate bypass
 $page = urldecode(urldecode($page_raw));
 
+// Debugging output
+echo "<!-- Debug Info: -->\n";
+echo "<!-- page_raw: " . htmlspecialchars($page_raw) . " -->\n";
+echo "<!-- page_single_decode: " . htmlspecialchars($page_single_decode) . " -->\n";
+echo "<!-- page after double decode: " . htmlspecialchars($page) . " -->\n";
+
 // Allow files in the "pages" directory (with .php extension)
 $filepath = "pages/" . $page . ".php";
+echo "<!-- filepath: " . htmlspecialchars($filepath) . " -->\n";
 
 // If the page exists in "pages" directory, include it
 if (file_exists($filepath)) {
@@ -92,6 +104,7 @@ if (file_exists($filepath)) {
     }
 }
 ?>
+
 
     </div>
 
