@@ -13,46 +13,46 @@
     </nav>
 
     <div class="content">
-        <?php
-        if (isset($_GET['page'])) {
-            $page = $_GET['page'];
+<?php
+if (isset($_GET['page'])) {
+    $page = $_GET['page'];
 
-            // Apply directory traversal checks BEFORE decoding
-            if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
-                die("Access denied.");
-            }
+    // Apply security checks
+    if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
+        die("Access denied.");
+    }
+    if (strpos($page, chr(0)) !== false) {
+        die("Null byte detected.");
+    }
 
-            // Check for null byte injection
-            if (strpos($page, chr(0)) !== false) {
-                die("Null byte detected.");
-            }
+    // Double URL decode
+    $page = urldecode(urldecode($page));
 
-            // Only allow alphanumeric characters and underscores
-            if (!preg_match('/^[a-zA-Z0-9_]+$/', $page)) {
-                die("Invalid page name.");
-            }
+    // Remove any remaining directory components
+    $page = basename($page);
 
-            // Double URL decode the 'page' parameter AFTER the security checks
-            $page = urldecode(urldecode($page));
-
-            // Construct the file path without appending '.php'
-            $filepath = "pages/" . $page;
-
-            // Include the file if it exists
-            if (file_exists($filepath)) {
-                include($filepath);
-            } else {
-                echo "<h1>Page not found!</h1>";
-                echo "<p>The page you're looking for does not exist.</p>";
-            }
+    // Attempt to include from 'pages' directory
+    $filepath = "pages/" . $page . ".php";
+    if (file_exists($filepath)) {
+        include($filepath);
+    } else {
+        // Attempt to include directly from root directory
+        if (file_exists($page)) {
+            include($page);
         } else {
-            include("pages/home.php");  // Default page
+            echo "<h1>Page not found!</h1>";
+            echo "<p>The page you're looking for does not exist.</p>";
         }
-        ?>
+    }
+} else {
+    include("pages/home.php");  // Default page
+}
+?>
+
     </div>
 
     <footer>
-        <p>&copy; 2024 Vulnerable LFI Demo Site</p>
+        <p>&copy; 2024 LM Security</p>
     </footer>
 
 </body>
