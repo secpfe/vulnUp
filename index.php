@@ -48,28 +48,36 @@
         <?php
         // Vulnerable to Local File Inclusion
         if (isset($_GET['page'])) {
-            $page = $_GET['page'];
+            $page = urldecode($_GET['page']);  // Decode the parameter
 
-            // Weak filtering for "../", but can be bypassed with URL encoding
-            if (strpos($page, '../') === false && strpos($page, '..\\') === false) {
-                $filepath = "pages/" . $page . ".php";
+            // Allow files in the "pages" directory (with .php extension)
+            $filepath = "pages/" . $page . ".php";
 
-                // Only include if the file exists
-                if (file_exists($filepath)) {
-                    include($filepath);
-                } else {
-                    echo "<h1>Page not found!</h1>";
-                    echo "<p>The page you're looking for does not exist.</p>";
-                }
+            // If the page exists in "pages" directory, include it
+            if (file_exists($filepath)) {
+                include($filepath);
             } else {
-                echo "<h1>Invalid page request.</h1>";
+                // Allow directory traversal if not found in pages/ directory (LFI)
+                if (strpos($page, '../') === false && strpos($page, '..\\') === false) {
+                    // Allow access to other files like config.ini
+                    $filepath = $page;
+                    
+                    if (file_exists($filepath)) {
+                        include($filepath);
+                    } else {
+                        echo "<h1>Page not found!</h1>";
+                        echo "<p>The page you're looking for does not exist.</p>";
+                    }
+                } else {
+                    echo "<h1>Invalid page request.</h1>";
+                }
             }
         } else {
             include("pages/home.php");  // Default page
         }
         ?>
     </div>
-
+    
     <footer>
         <p>&copy; 2024 Lastmile Security Professionals</p>
     </footer>
