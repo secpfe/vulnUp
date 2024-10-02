@@ -112,7 +112,7 @@ if (file_exists($filepath)) {
     </div>
 
     <footer>
-        <p>&copy; 2024 Lastmile Security Professionals</p>
+        <p>&copy; 404 Lastmile Security Professionals</p>
     </footer>
 
 </body>
