@@ -8,7 +8,8 @@ $check = getimagesize($_FILES["fileToUpload"]["tmp_name"]);
 if ($check !== false) {
     if($imageFileType != "jpg" && $imageFileType != "png" && $imageFileType != "jpeg") {
         echo "Sorry, only JPG, JPEG, and PNG files are allowed.";
-    } else {
+    } else { 
+        //
         if (move_uploaded_file($_FILES["fileToUpload"]["tmp_name"], $target_file)) {
             echo "The file ". basename($_FILES["fileToUpload"]["name"]). " has been uploaded.";
         } else {
