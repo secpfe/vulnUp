@@ -76,7 +76,16 @@ if (file_exists($filepath)) {
 } else {
     // Allow directory traversal if not found in pages/ directory (LFI)
     if (file_exists($page)) {
-        include($page); // Include non-PHP files like config.ini
+        // Include non-PHP files like config.ini
+        $ext = pathinfo($page, PATHINFO_EXTENSION);
+        if ($ext === 'php') {
+            include($page);
+        } else {
+            // Output the contents safely
+            echo "<pre>";
+            echo htmlspecialchars(file_get_contents($page));
+            echo "</pre>";
+        }
     } else {
         echo "<h1>Page not found!</h1>";
         echo "<p>The page you're looking for does not exist.</p>";
