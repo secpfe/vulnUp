@@ -26,5 +26,5 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: ${{ matrix.app_name }}
-          publish-profile: ${{ secrets[format('{0}_PUBLISH_PROFILE', (matrix.app_name | upper() | replace('-', '_')))] }}
+          publish-profile: ${{ secrets[format('{0}_PUBLISH_PROFILE', replace(toUpper(matrix.app_name), '-', '_'))] }}
           package: '.'
