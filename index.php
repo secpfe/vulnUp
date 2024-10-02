@@ -56,10 +56,13 @@ $query = $_SERVER['QUERY_STRING'];
 preg_match('/(?:^|&)' . preg_quote('page', '/') . '=([^&]*)/', $query, $matches);
 $page_raw = isset($matches[1]) ? $matches[1] : '';
 
-// Single URL decode
+// Double URL decode to simulate bypass
+$page = urldecode(urldecode($page_raw));
+
+// Single URL decode for security checks
 $page_single_decode = urldecode($page_raw);
 
-// Check for directory traversal (../ or ..\\)
+// Check for directory traversal in singly decoded input
 if (strpos($page_single_decode, '../') !== false || strpos($page_single_decode, '..\\') !== false) {
     die("Access denied.");
 }
@@ -69,43 +72,51 @@ if (strpos($page_single_decode, chr(0)) !== false) {
     die("Null byte detected.");
 }
 
-// Double URL decode to simulate bypass
-$page = urldecode(urldecode($page_raw));
-
-// Allow files in the "pages" directory (with .php extension)
-$filepath = "pages/" . $page . ".php";
-
 // Debugging output
 echo "<div style='background-color: #f9f9f9; border: 1px solid #ccc; padding: 10px;'>";
 echo "<strong>Debug Info:</strong><br>";
 echo "page_raw: " . htmlspecialchars($page_raw) . "<br>";
 echo "page_single_decode: " . htmlspecialchars($page_single_decode) . "<br>";
 echo "page after double decode: " . htmlspecialchars($page) . "<br>";
-echo "filepath: " . htmlspecialchars($filepath) . "<br>";
 echo "</div>";
 
-// If the page exists in "pages" directory, include it
-if (file_exists($filepath)) {
-    include($filepath);
-} else {
-    // Allow directory traversal if not found in pages/ directory (LFI)
-    if (file_exists($page)) {
-        // Include non-PHP files like config.ini
-        $ext = pathinfo($page, PATHINFO_EXTENSION);
-        if ($ext === 'php') {
-            include($page);
-        } else {
-            // Output the contents safely
-            echo "<pre>";
-            echo htmlspecialchars(file_get_contents($page));
-            echo "</pre>";
-        }
-    } else {
-        echo "<h1>Page not found!</h1>";
-        echo "<p>The page you're looking for does not exist.</p>";
+// Base directory for pages
+$base_dir = realpath(__DIR__ . '/pages/') . '/';
+
+// Attempt to include from the 'pages' directory if no directory traversal is present
+if (strpos($page, '../') === false && strpos($page, '..\\') === false) {
+    // Construct the filepath
+    $filepath = realpath($base_dir . $page . '.php');
+
+    // Check if the file exists within the 'pages' directory
+    if ($filepath && strpos($filepath, $base_dir) === 0 && file_exists($filepath)) {
+        include($filepath);
+        exit;
     }
 }
+
+// Attempt LFI if the file was not found in 'pages' directory
+// Resolve the real path of the requested file
+$page_path = realpath(__DIR__ . '/' . $page);
+
+// Check if the file exists and is within the allowed directory
+if ($page_path && strpos($page_path, __DIR__) === 0 && file_exists($page_path)) {
+    // Include non-PHP files like config.ini
+    $ext = pathinfo($page_path, PATHINFO_EXTENSION);
+    if ($ext === 'php') {
+        include($page_path);
+    } else {
+        // Output the contents safely
+        echo "<pre>";
+        echo htmlspecialchars(file_get_contents($page_path));
+        echo "</pre>";
+    }
+} else {
+    echo "<h1>Page not found!</h1>";
+    echo "<p>The page you're looking for does not exist.</p>";
+}
 ?>
+
 
 
 
