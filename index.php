@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lastmile Security</title>
+    <title>Vulnerable LFI Demo Site</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -50,11 +50,11 @@
         if (isset($_GET['page'])) {
             $page = $_GET['page'];
 
-            // Restrict inclusion to the "pages" directory, but does not prevent traversal attacks
-            if (strpos($page, '..') === false) {
+            // Weak filtering for "../", but can be bypassed with URL encoding
+            if (strpos($page, '../') === false && strpos($page, '..\\') === false) {
                 $filepath = "pages/" . $page . ".php";
 
-                // Only include if the file exists in the pages directory
+                // Only include if the file exists
                 if (file_exists($filepath)) {
                     include($filepath);
                 } else {
@@ -71,7 +71,7 @@
     </div>
 
     <footer>
-        <p>&copy; LastMile Security Professionals</p>
+        <p>&copy; 2024 Lastmile Security Professionals</p>
     </footer>
 
 </body>
