@@ -72,15 +72,17 @@ if (strpos($page_single_decode, chr(0)) !== false) {
 // Double URL decode to simulate bypass
 $page = urldecode(urldecode($page_raw));
 
-// Debugging output
-echo "<!-- Debug Info: -->\n";
-echo "<!-- page_raw: " . htmlspecialchars($page_raw) . " -->\n";
-echo "<!-- page_single_decode: " . htmlspecialchars($page_single_decode) . " -->\n";
-echo "<!-- page after double decode: " . htmlspecialchars($page) . " -->\n";
-
 // Allow files in the "pages" directory (with .php extension)
 $filepath = "pages/" . $page . ".php";
-echo "<!-- filepath: " . htmlspecialchars($filepath) . " -->\n";
+
+// Debugging output
+echo "<div style='background-color: #f9f9f9; border: 1px solid #ccc; padding: 10px;'>";
+echo "<strong>Debug Info:</strong><br>";
+echo "page_raw: " . htmlspecialchars($page_raw) . "<br>";
+echo "page_single_decode: " . htmlspecialchars($page_single_decode) . "<br>";
+echo "page after double decode: " . htmlspecialchars($page) . "<br>";
+echo "filepath: " . htmlspecialchars($filepath) . "<br>";
+echo "</div>";
 
 // If the page exists in "pages" directory, include it
 if (file_exists($filepath)) {
@@ -104,6 +106,7 @@ if (file_exists($filepath)) {
     }
 }
 ?>
+
 
 
     </div>
