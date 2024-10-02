@@ -1,12 +1,18 @@
 <?php
-// Vulnerable to LFI
+// Vulnerable to Local File Inclusion
 if (isset($_GET['page'])) {
     $page = $_GET['page'];
 
-    // Basic path traversal protection (weak), can be bypassed by ../
+    // Restrict inclusion to the "pages" directory, but does not prevent traversal attacks
     if (strpos($page, '..') === false) {
-        // Include the requested page
-        include($page . ".php");
+        $filepath = "pages/" . $page . ".php";
+
+        // Only include if the file exists in the pages directory
+        if (file_exists($filepath)) {
+            include($filepath);
+        } else {
+            echo "Page not found!";
+        }
     } else {
         echo "Invalid page.";
     }
