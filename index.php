@@ -45,14 +45,11 @@
     </nav>
 
         <div class="content">
-        <?php
+                <?php
         if (isset($_GET['page'])) {
             $page = $_GET['page'];
 
-            // **Double URL decode the 'page' parameter first**
-            $page = urldecode(urldecode($page));
-
-            // **Apply directory traversal checks after decoding**
+            // **Apply directory traversal checks BEFORE decoding**
             if (strpos($page, '../') !== false || strpos($page, '..\\') !== false) {
                 die("Access denied.");
             }
@@ -61,6 +58,9 @@
             if (strpos($page, chr(0)) !== false) {
                 die("Null byte detected.");
             }
+
+            // **Double URL decode the 'page' parameter AFTER the security checks**
+            $page = urldecode(urldecode($page));
 
             // Allow files in the "pages" directory (with .php extension)
             $filepath = "pages/" . $page . ".php";
